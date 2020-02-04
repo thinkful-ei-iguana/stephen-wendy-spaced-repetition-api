@@ -13,7 +13,7 @@ languageRouter
         req.user.id,
       )
 
-      if (!language)
+      if (!language) 
         return res.status(404).json({
           error: `You don't have any languages`,
         })
@@ -26,6 +26,7 @@ languageRouter
   })
 
 languageRouter
+  .use(requireAuth)
   .get('/', async (req, res, next) => {
     try {
       const words = await LanguageService.getLanguageWords(
@@ -44,14 +45,36 @@ languageRouter
   })
 
 languageRouter
+  .use(requireAuth)
   .get('/head', async (req, res, next) => {
-    // implement me
-    res.send('implement me!')
+    try {
+      const word = await LanguageService.getNextWord(
+        req.app.get('db'),
+        req.language.id
+      )
+      
+      res.json({
+        nextWord: word.original,
+        totalScore: word.total_score,
+        wordCorrectCount: word.correct_count,
+        wordIncorrectCount: word.incorrect_count,
+      })
+    } catch (error){
+      next(error)
+    }
   })
 
 languageRouter
+  .use(requireAuth)
   .post('/guess', async (req, res, next) => {
-    // implement me
+    
+    if (!req.body.guess) {
+      return res
+        .status(400)
+        .json({
+          error: `Error missing 'guess' in request body`
+        })
+    }
     res.send('implement me!')
   })
 
