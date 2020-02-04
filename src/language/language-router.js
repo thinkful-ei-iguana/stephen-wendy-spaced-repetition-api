@@ -45,34 +45,35 @@ languageRouter
   })
 
 languageRouter
-  .use(requireAuth)
   .get('/head', async (req, res, next) => {
     try {
-      const word = await LanguageService.getNextWord(
+      const [ head ] = await LanguageService.getLanguageHead(
         req.app.get('db'),
         req.language.id
       )
       
       res.json({
-        nextWord: word.original,
-        totalScore: word.total_score,
-        wordCorrectCount: word.correct_count,
-        wordIncorrectCount: word.incorrect_count,
+        nextWord: head.original,
+        totalScore: head.total_score,
+        wordCorrectCount: head.correct_count,
+        wordIncorrectCount: head.incorrect_count,
       })
+      next();
     } catch (error){
       next(error)
     }
   })
 
 languageRouter
-  .use(requireAuth)
   .post('/guess', async (req, res, next) => {
-    
-    if (!req.body.guess) {
+    // const guess = req.body;
+    console.log();
+
+    if (!req.body) {
       return res
         .status(400)
         .json({
-          error: `Error missing 'guess' in request body`
+          error: `Missing 'guess' in request body`
         })
     }
     res.send('implement me!')

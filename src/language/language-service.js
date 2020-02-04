@@ -29,24 +29,22 @@ const LanguageService = {
       .where({ language_id })
   },
 
-  getNextWord(db, id) {
+  getLanguageHead(db, language_id) {
     return db
-      .from('word')
+      .from('language')
       .select(
-        'word.id',
         'word.original',
         'language.total_score',
         'word.correct_count',
         'word.incorrect_count',
       )
       .join(
-        'language',
-        'language.id',
+        'word',
+        'word.id',
         '=',
-        'word.language_id',
+        'language.head',
       )
-      .where('word.id', id)
-      .first();
+      .where('language.id', language_id);
   }
 }
 
