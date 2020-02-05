@@ -119,11 +119,11 @@ const LanguageService = {
   },
 
   updateTotalScore(db, language_id) {
-    const totalScore = db.from('language')
+    let totalScore = db.from('language')
       .select('total_score')
       .where('language.id', language_id);
     
-    totalScore++
+    totalScore = totalScore.total_score++
 
     db('language')
       .where(
