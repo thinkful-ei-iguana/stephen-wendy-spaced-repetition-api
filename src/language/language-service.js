@@ -42,18 +42,12 @@ const LanguageService = {
       .join("word", "word.id", "=", "language.head")
       .where("language.id", language_id);
   },
-  // updateLanguageHead(db, language_id, ) {
-  //   return db
-  //   .from('word')
-  //   .select('word.next')
-  //   .leftJoin(
-  //     'language',
-  //     'word.id',
-  //     '=',
-  //     'language.head'
-  //     )
-  //   .update('word.next')
-  // },
+  updateLanguageHead(db, language_id, head) {
+    return db
+      .from("language")
+      .where("language.id", language_id)
+      .update({ head });
+  },
 
   // checkGuess(db, language_id, guess) {
   //   const head = db
