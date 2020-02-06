@@ -42,26 +42,34 @@ const LanguageService = {
       .join("word", "word.id", "=", "language.head")
       .where("language.id", language_id);
   },
-  updateLanguageHead(db, language_id, head) {
+
+  updateLanguageHeadAndScore(db, language_id, head, total_score) {
     return db
       .from("language")
       .where("language.id", language_id)
-      .update({ head });
+      .update({ head, total_score });
   },
 
-  // checkGuess(db, language_id, guess) {
-  //   const head = db
-  //     .from("word")
-  //     .select("word.translation")
-  //     .leftJoin("language", "language.head", "=", "word.id")
-  //     .where("language.id", "=", language_id);
+  updateTotalScore(db, language_id, score) {
+    return db
+      .from("language")
+      .where("language.id", language_id)
+      .update({ score });
+  },
 
-  //   if (head.translation === guess) {
-  //     return true;
-  //   }
-  //   return false;
-  // },
-  //id = head frm lang table
+  getNext(db, next) {
+    return db
+      .from("word")
+      .select("original")
+      .where("id", next)
+      .first();
+  },
+  updateNext(db, id, next) {
+    return db
+      .from("word")
+      .where("id", id)
+      .update({ next });
+  },
   checkGuess(db, id) {
     return db
       .from("word")
@@ -104,22 +112,6 @@ const LanguageService = {
     return 1;
   },
 
-  updateTotalScore(db, language_id) {
-    let totalScore = db
-      .from("language")
-      .select("total_score")
-      .where("language.id", language_id);
-
-    totalScore = totalScore.total_score++;
-
-    db("language")
-      .where("language.id", "=", language_id)
-      .update({
-        total_score: totalScore
-      });
-    return totalScore;
-  },
-
   shiftWord(db, language_id, int) {
     const head = db
       .from("word")
@@ -133,18 +125,6 @@ const LanguageService = {
         head: int
       });
   }
-  // serializeResponse(reponse) {
-  //   return {
-
-  //       nextWord: ,
-  //       totalScore: ,
-  //       wordCorrectCount: response.correct_count,
-  //       wordIncorrectCount: response.incorrect_count,
-  //       answer: response.translation,
-  //       isCorrect: true
-
-  //   }
-  // }
 };
 
 module.exports = LanguageService;
