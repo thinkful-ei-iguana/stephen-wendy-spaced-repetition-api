@@ -51,6 +51,7 @@ languageRouter.get("/head", async (req, res, next) => {
 
     res.json({
       nextWord: head.original,
+
       totalScore: head.total_score,
       wordCorrectCount: head.correct_count,
       wordIncorrectCount: head.incorrect_count
@@ -65,13 +66,16 @@ languageRouter
 
   //checks the translation of the current word
   .use(checkTranslation)
-  // .use(getNext)
+  //move the head by one whether correct or incorrect
+  // .use(moveHead)
   .post("/guess", jsonBodyParser, async (req, res, next) => {
     const { guess } = req.body;
     //service updates the head and score (language table)
-    let nextHead = req.language.head + 1;
+    let currHead = req.language.head;
+
     let totalScore = req.language.total_score;
     //update the count - should persist
+
     let correctCount = 0;
     let incorrectCount = 0;
 
@@ -82,25 +86,34 @@ languageRouter
     }
 
     //need to account for NULL nextHead
-    const head = await LanguageService.getNext(req.app.get("db"), nextHead);
+    const [head] = await LanguageService.getLanguageHead(
+      req.app.get("db"),
+      req.language.id
+    );
+
+    const [nextWord] = await LanguageService.getNextWord(
+      req.app.get("db"),
+      req.language.id,
+      head.next
+    );
 
     if (guess === res.guess.translation) {
       totalScore = totalScore + 1;
       // correctCount = correctCount + 1;
-
+      //next head should be the next word id
       LanguageService.updateLanguageHeadAndScore(
         req.app.get("db"),
         req.language.id,
-        nextHead,
+        head.next,
         totalScore
       )
         .then(rows => {
           res.status(200).json({
-            nextWord: head.original,
+            nextWord: nextWord.original,
             totalScore: totalScore,
             wordCorrectCount: correctCount,
             wordIncorrectCount: incorrectCount,
-            answer: res.guess.translation,
+            answer: head.translation,
             isCorrect: true
           });
         })
@@ -110,16 +123,14 @@ languageRouter
       // incorrectCount = incorrectCount + 1;
 
       return res.status(200).json({
-        nextWord: head.original,
+        nextWord: nextWord.original,
         totalScore: totalScore,
         wordCorrectCount: correctCount,
         wordIncorrectCount: incorrectCount,
-        answer: res.guess.translation,
+        answer: head.translation,
         isCorrect: false
       });
     }
-
-    //if correct guess, update mem val, update total score, move head
   });
 
 async function checkTranslation(req, res, next) {
@@ -129,7 +140,6 @@ async function checkTranslation(req, res, next) {
       req.language.head
     );
 
-    if (!guess) return res.status(404).json({ error: "Incorrect guess" });
     res.guess = guess;
 
     next();
@@ -138,15 +148,15 @@ async function checkTranslation(req, res, next) {
   }
 }
 
-async function getNext(req, res, next) {
+async function moveHead(req, res, next) {
   try {
-    const guess = await LanguageService.getNext(
+    const guess = await LanguageService.updateLanguageHead(
       req.app.get("db"),
+      res.guess.next,
       res.guess.next
     );
-
-    if (!guess) return res.status(404).json({ error: "Incorrect guess" });
     res.guess = guess;
+    let test = guess;
 
     next();
   } catch (error) {

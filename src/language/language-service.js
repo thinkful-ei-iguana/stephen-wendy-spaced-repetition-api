@@ -35,14 +35,21 @@ const LanguageService = {
       .from("language")
       .select(
         "word.original",
+        "word.translation",
         "language.total_score",
         "word.correct_count",
-        "word.incorrect_count"
+        "word.incorrect_count",
+        "word.next"
       )
       .join("word", "word.id", "=", "language.head")
       .where("language.id", language_id);
   },
-
+  getNextWord(db, language_id, word_id) {
+    return db
+      .from("word")
+      .select("original", "translation")
+      .where("word.id", word_id);
+  },
   updateLanguageHeadAndScore(db, language_id, head, total_score) {
     return db
       .from("language")
@@ -50,14 +57,14 @@ const LanguageService = {
       .update({ head, total_score });
   },
 
-  updateTotalScore(db, language_id, score) {
+  updateScoreAndPosition(db, language_id, correct_count, incorrect_count) {
     return db
-      .from("language")
-      .where("language.id", language_id)
-      .update({ score });
+      .from("word")
+      .where({ language_id })
+      .update({ correct_count, incorrect_count });
   },
 
-  getNext(db, next) {
+  setHeadToNext(db, next) {
     return db
       .from("word")
       .select("original")
