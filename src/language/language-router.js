@@ -51,7 +51,6 @@ languageRouter.get("/head", async (req, res, next) => {
 
     res.json({
       nextWord: head.original,
-
       totalScore: head.total_score,
       wordCorrectCount: head.correct_count,
       wordIncorrectCount: head.incorrect_count
@@ -67,7 +66,7 @@ languageRouter
   //checks the translation of the current word
   .use(checkTranslation)
   //move the head by one whether correct or incorrect
-  // .use(moveHead)
+
   .post("/guess", jsonBodyParser, async (req, res, next) => {
     const { guess } = req.body;
     //service updates the head and score (language table)
@@ -77,8 +76,7 @@ languageRouter
     //update the count - should persist
 
     let correctCount = 0;
-    let incorrectCount = 0;
-
+    // let incorrectCount;
     if (!guess) {
       return res.status(400).json({
         error: `Missing 'guess' in request body`
@@ -91,15 +89,24 @@ languageRouter
       req.language.id
     );
 
+    console.log("head", head);
     const [nextWord] = await LanguageService.getNextWord(
       req.app.get("db"),
       req.language.id,
       head.next
     );
+    console.log("nextWord", nextWord);
 
+    //don't need the below, have access through get Head
+    const [wordScore] = await LanguageService.getTotalWordScore(
+      req.app.get("db"),
+      req.language.id,
+      req.language.head
+    );
+    console.log("wordScore", wordScore);
     if (guess === res.guess.translation) {
       totalScore = totalScore + 1;
-      // correctCount = correctCount + 1;
+
       //next head should be the next word id
       LanguageService.updateLanguageHeadAndScore(
         req.app.get("db"),
@@ -113,23 +120,35 @@ languageRouter
             totalScore: totalScore,
             wordCorrectCount: correctCount,
             wordIncorrectCount: incorrectCount,
-            answer: head.translation,
+            answer: wordScore.translation,
             isCorrect: true
           });
         })
         .catch(next);
     } else {
-      // nextHead = nextHead + 1;
-      // incorrectCount = incorrectCount + 1;
+      console.log("currHead", currHead);
 
-      return res.status(200).json({
-        nextWord: nextWord.original,
-        totalScore: totalScore,
-        wordCorrectCount: correctCount,
-        wordIncorrectCount: incorrectCount,
-        answer: head.translation,
-        isCorrect: false
-      });
+      let incorrectCount = head.incorrect_count + 1;
+      let nextWordId = wordScore.next;
+
+      console.log("nextWord", nextWord);
+      LanguageService.updateIncorrectScoreAndPosition(
+        req.app.get("db"),
+        req.language.id,
+        incorrectCount,
+        nextWordId
+      )
+        .then(rows => {
+          res.status(200).json({
+            nextWord: wordScore.original,
+            totalScore: totalScore,
+            wordCorrectCount: correctCount,
+            wordIncorrectCount: head.incorrect_count,
+            answer: nextWord.translation,
+            isCorrect: false
+          });
+        })
+        .catch(next);
     }
   });
 
@@ -148,19 +167,4 @@ async function checkTranslation(req, res, next) {
   }
 }
 
-async function moveHead(req, res, next) {
-  try {
-    const guess = await LanguageService.updateLanguageHead(
-      req.app.get("db"),
-      res.guess.next,
-      res.guess.next
-    );
-    res.guess = guess;
-    let test = guess;
-
-    next();
-  } catch (error) {
-    next(error);
-  }
-}
 module.exports = languageRouter;
