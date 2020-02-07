@@ -90,7 +90,7 @@ languageRouter
   
         let [nextWord] = await LanguageService.getWord(
           req.app.get('db'),
-          next
+          wordList.head.value.next
         )
   
         let [total] = await LanguageService.updateTotal(
@@ -107,8 +107,8 @@ languageRouter
         );
   
         let correctRes = {
-          "nextWord": wordList.head.next.value.original,
-          "wordCountCorrect": nextWord.correct_count,
+          "nextWord": wordList.head.value.original,
+          "wordCorrectCount": nextWord.correct_count,
           "wordIncorrectCount": nextWord.incorrect_count,
           "totalScore": total,
           "answer": correctAnswer.translation,
