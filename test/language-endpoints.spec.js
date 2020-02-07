@@ -2,7 +2,7 @@ const app = require("../src/app");
 const helpers = require("./test-helpers");
 
 describe("Language Endpoints", function() {
-  // this.timeout(5000);
+  this.timeout(5000);
   let db;
 
   const testUsers = helpers.makeUsersArray();
