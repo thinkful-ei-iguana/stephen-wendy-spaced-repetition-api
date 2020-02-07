@@ -1,7 +1,7 @@
 const app = require("../src/app");
 const helpers = require("./test-helpers");
 
-describe.only("Language Endpoints", function() {
+describe("Language Endpoints", function() {
   // this.timeout(5000);
   let db;
 
@@ -181,7 +181,7 @@ describe.only("Language Endpoints", function() {
         guess: "incorrect"
       };
 
-      it.only(`responds with incorrect and moves head`, () => {
+      it(`responds with incorrect and moves head`, () => {
         return supertest(app)
           .post(`/api/language/guess`)
           .set("Authorization", helpers.makeAuthHeader(testUser))
@@ -197,7 +197,7 @@ describe.only("Language Endpoints", function() {
           });
       });
 
-      it.only(`moves the word 1 space and updates incorrect count`, async () => {
+      it(`moves the word 1 space and updates incorrect count`, async () => {
         await supertest(app)
           .post(`/api/language/guess`)
           .set("Authorization", helpers.makeAuthHeader(testUser))

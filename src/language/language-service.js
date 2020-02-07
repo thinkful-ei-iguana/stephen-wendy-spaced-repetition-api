@@ -44,7 +44,12 @@ const LanguageService = {
       .join("word", "word.id", "=", "language.head")
       .where("language.id", language_id);
   },
-
+  getCurrentWord(db, language_id, word_id) {
+    return db
+      .from("word")
+      .select("*")
+      .where("word.id", word_id);
+  },
   getNextWord(db, language_id, word_id) {
     return db
       .from("word")
@@ -65,7 +70,12 @@ const LanguageService = {
       .select("*")
       .where("word.id", word_id);
   },
-
+  updateCorrectScoreAndPosition(db, word_id, correct_count, next) {
+    return db
+      .from("word")
+      .where("word.id", word_id)
+      .update({ correct_count, next });
+  },
   updateIncorrectScoreAndPosition(db, word_id, incorrect_count, next) {
     return db
       .from("word")
