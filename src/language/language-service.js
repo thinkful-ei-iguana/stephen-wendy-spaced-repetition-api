@@ -1,4 +1,6 @@
 /* eslint-disable quotes */
+const LL = require("./LL");
+
 const LanguageService = {
   getUsersLanguage(db, user_id) {
     return db
