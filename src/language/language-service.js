@@ -108,7 +108,7 @@ const LanguageService = {
 
     await LanguageService.moveHead(db, language_id, nodeBefore.value.next);
 
-    if (memory_value >= length) {
+    if (memory_value > length - 1) {
       while (nodeBefore.next) {
         nodeBefore = nodeBefore.next;
       }
